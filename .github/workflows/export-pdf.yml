@@ -6,6 +6,22 @@ on:
         description: 'PDF backend (pandoc|node)'
         required: false
         default: 'pandoc'
+      style:
+        description: 'Pandoc syntax style (tango|breezedark|pygments|kate|monochrome|espresso|zenburn|haddock)'
+        required: false
+        default: 'tango'
+      mainfont:
+        description: 'Pandoc mainfont (e.g., "TeX Gyre Termes" para símbolos como ≤)'
+        required: false
+        default: 'TeX Gyre Termes'
+      monofont:
+        description: 'Pandoc monospaced font (e.g., "TeX Gyre Cursor" o "Fira Code")'
+        required: false
+        default: 'TeX Gyre Cursor'
+      nodeHighlightStyle:
+        description: 'Node md-to-pdf highlight_style (e.g., github, atom-one-dark)'
+        required: false
+        default: 'github'
   push:
     paths:
       - 'docs/guides/*.md'
@@ -27,10 +43,25 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Ensure jq (only for node backend)
+        if: ${{ github.event.inputs.backend == 'node' }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Apply node highlight style (only for node backend)
+        if: ${{ github.event.inputs.backend == 'node' && github.event.inputs.nodeHighlightStyle != '' }}
+        run: |
+          jq --arg s "${{ github.event.inputs.nodeHighlightStyle }}" '.highlight_style=$s' docs/guides/md-to-pdf.config.json > docs/guides/md-to-pdf.config.tmp.json
+          mv docs/guides/md-to-pdf.config.tmp.json docs/guides/md-to-pdf.config.json
+          echo "Config md-to-pdf:" && cat docs/guides/md-to-pdf.config.json
+
       - name: Generate PDFs via script
         env:
           PDF_BACKEND: ${{ github.event.inputs.backend }}
-          PANDOC_HIGHLIGHT_STYLE: tango
+          PANDOC_SYNTAX_STYLE: ${{ github.event.inputs.style }}
+          PANDOC_MAINFONT: ${{ github.event.inputs.mainfont }}
+          PANDOC_MONOFONT: ${{ github.event.inputs.monofont }}
         run: |
           chmod +x scripts/convert-md-to-pdf.sh
           ./scripts/convert-md-to-pdf.sh

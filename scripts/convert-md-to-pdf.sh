@@ -11,34 +11,54 @@ OUTPUT_DIR="$ROOT_DIR/docs/pdf"
 mkdir -p "$OUTPUT_DIR"
 
 # Styles (customize via env)
-PANDOC_HIGHLIGHT_STYLE="${PANDOC_HIGHLIGHT_STYLE:-tango}"   # tango|breezedark|pygments|kate|monochrome|espresso|zenburn|haddock
-PANDOC_MONOFONT="${PANDOC_MONOFONT:-}"                      # e.g., "Fira Code"
+# Prefer PANDOC_SYNTAX_STYLE; fallback to PANDOC_HIGHLIGHT_STYLE; default tango
+PANDOC_SYNTAX_STYLE="${PANDOC_SYNTAX_STYLE:-${PANDOC_HIGHLIGHT_STYLE:-tango}}"
+PANDOC_MAINFONT="${PANDOC_MAINFONT:-}"                 # e.g., "TeX Gyre Termes" (para símbolos como ≤)
+PANDOC_MONOFONT="${PANDOC_MONOFONT:-}"                # e.g., "TeX Gyre Cursor" o "Fira Code"
 MD_TO_PDF_CONFIG="$INPUT_DIR/md-to-pdf.config.json"
 
 has_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+supports_syntax_highlighting_flag() {
+  # $1 = method: docker-pandoc|pandoc
+  if [[ "$1" == "docker-pandoc" ]]; then
+    docker run --rm pandoc/latex:latest pandoc --help 2>/dev/null | grep -q "--syntax-highlighting" || return 1
+  else
+    pandoc --help 2>/dev/null | grep -q "--syntax-highlighting" || return 1
+  fi
+}
+
+build_pandoc_args() {
+  # $1 = method: docker-pandoc|pandoc
+  local args=()
+  if supports_syntax_highlighting_flag "$1"; then
+    args+=("--syntax-highlighting=$PANDOC_SYNTAX_STYLE")
+  else
+    # Backward compat for older pandoc
+    args+=("--highlight-style=$PANDOC_SYNTAX_STYLE")
+  fi
+  # Fonts
+  [[ -n "$PANDOC_MAINFONT" ]] && args+=( -V "mainfont=$PANDOC_MAINFONT" )
+  [[ -n "$PANDOC_MONOFONT" ]] && args+=( -V "monofont=$PANDOC_MONOFONT" )
+  printf '%s\n' "${args[@]}"
+}
+
 convert_with_docker_pandoc() {
   local md="$1"; local outpdf="$2"
-  local font_opts=()
-  if [[ -n "$PANDOC_MONOFONT" ]]; then
-    font_opts=(-V "monofont=$PANDOC_MONOFONT")
-  fi
+  # shellcheck disable=SC2207
+  local style_args=( $(build_pandoc_args docker-pandoc) )
   docker run --rm -v "$ROOT_DIR":"/data" pandoc/latex:latest \
     --from=gfm --pdf-engine=xelatex \
-    --highlight-style="$PANDOC_HIGHLIGHT_STYLE" \
-    "${font_opts[@]}" \
+    "${style_args[@]}" \
     "/data/docs/guides/$(basename "$md")" -o "/data/docs/pdf/$(basename "$outpdf")"
 }
 
 convert_with_pandoc() {
   local md="$1"; local outpdf="$2"
-  local font_opts=()
-  if [[ -n "$PANDOC_MONOFONT" ]]; then
-    font_opts=(-V "monofont=$PANDOC_MONOFONT")
-  fi
+  # shellcheck disable=SC2207
+  local style_args=( $(build_pandoc_args pandoc) )
   pandoc --from=gfm --pdf-engine=xelatex \
-    --highlight-style="$PANDOC_HIGHLIGHT_STYLE" \
-    "${font_opts[@]}" \
+    "${style_args[@]}" \
     "$md" -o "$outpdf"
 }
 
