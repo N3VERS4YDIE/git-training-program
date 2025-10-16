@@ -1,0 +1,16 @@
+{
+  "highlight_style": "github",
+  "stylesheet": [
+    "./docs/guides/pdf.css"
+  ],
+  "pdf_options": {
+    "format": "A4",
+    "margin": {
+      "top": "20mm",
+      "right": "18mm",
+      "bottom": "20mm",
+      "left": "18mm"
+    },
+    "printBackground": true
+  }
+}

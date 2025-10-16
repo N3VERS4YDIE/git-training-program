@@ -1,0 +1,42 @@
+name: Export Markdown to PDF
+on:
+  workflow_dispatch:
+    inputs:
+      backend:
+        description: 'PDF backend (pandoc|node)'
+        required: false
+        default: 'pandoc'
+  push:
+    paths:
+      - 'docs/guides/*.md'
+      - 'docs/guides/md-to-pdf.config.json'
+      - 'docs/guides/pdf.css'
+      - 'scripts/convert-md-to-pdf.sh'
+      - '.github/workflows/export-pdf.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node (only for node backend)
+        if: ${{ github.event.inputs.backend == 'node' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate PDFs via script
+        env:
+          PDF_BACKEND: ${{ github.event.inputs.backend }}
+          PANDOC_HIGHLIGHT_STYLE: tango
+        run: |
+          chmod +x scripts/convert-md-to-pdf.sh
+          ./scripts/convert-md-to-pdf.sh
+
+      - name: Upload PDFs
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-pdfs
+          path: docs/pdf/*.pdf

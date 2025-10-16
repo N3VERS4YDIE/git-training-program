@@ -1,0 +1,31 @@
+:root {
+  --mono: "Fira Code", "JetBrains Mono", "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --text: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+html, body { font-family: var(--text); }
+h1, h2, h3 { line-height: 1.25; }
+pre, code { font-family: var(--mono); }
+pre {
+  border-radius: 6px;
+  padding: 12px 14px;
+  overflow: auto;
+}
+
+/* Estilo “GitHub-like” claro */
+pre code, code {
+  background: #f6f8fa;
+}
+code { padding: 2px 4px; border-radius: 4px; }
+
+/* Tablas */
+table { border-collapse: collapse; }
+th, td { border: 1px solid #d0d7de; padding: 6px 8px; }
+th { background: #f6f8fa; }
+
+/* Links */
+a { color: #0969da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Página */
+@page { size: A4; margin: 20mm 18mm; }
