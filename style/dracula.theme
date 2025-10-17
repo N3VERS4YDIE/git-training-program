@@ -1,0 +1,19 @@
+{
+  "text-color": "#ffffff",
+  "background-color": "#161b22",
+  "line-number-color": "#8b949e",
+  "line-number-background-color": null,
+  "text-styles": {
+    "Normal": { "text-color": "#e6edf3" },
+    "Comment": { "text-color": "#8b949e", "italic": true },
+    "Keyword": { "text-color": "#ff7b72", "bold": true },
+    "Function": { "text-color": "#d2a8ff" },
+    "String": { "text-color": "#a5d6ff" },
+    "Number": { "text-color": "#ffa657" },
+    "Operator": { "text-color": "#ff7b72" },
+    "DataType": { "text-color": "#79c0ff" },
+    "Variable": { "text-color": "#e6edf3" },
+    "Constant": { "text-color": "#ffab70" },
+    "Preprocessor": { "text-color": "#ff7b72" }
+  }
+}
